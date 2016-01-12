@@ -16,24 +16,22 @@ if applogger.chkLogger() > 0:
 else:
     logger = applogger.setLogger()
 logger.debug(msg='Running %s' % os.path.basename(__file__))
-credentials = credentials.get_credentials()
-neutron = client.Client(**credentials)
+auth = credentials.get_credentials()
 
 
-def list_networks():
+def list_networks(login):
     '''
     Get a list for networks
 
     Returns:
         list.
     '''
-    logger.info("0")
+    neutron = client.Client(**login)
     netw = neutron.list_networks()
-    logger.info("1")
     return netw['networks']
 
 
-def create_network(network_name, cidr):
+def create_network(login, network_name, cidr):
     '''
     Create a openstack network
 
@@ -41,8 +39,10 @@ def create_network(network_name, cidr):
         network_name (str): set network name
         cidr (str): network subnet
     '''
+    neutron = client.Client(**login)
+
     # Check if network name already taken
-    existing_net = filter(lambda network: network['name'] == network_name, list_networks())
+    existing_net = filter(lambda network: network['name'] == network_name, list_networks(login))
     if len(existing_net) > 0:
         raise ValueError('network name "%s" already taken. Please set a different network name' % network_name)
     else:

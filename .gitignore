@@ -2,7 +2,7 @@
 __pycache__/
 *.py[cod]
 
-#Don't commit config file as can contain sensative information.
+# Don't commit config file as can contain sensative information.
 config.cfg
 
 # C extensions

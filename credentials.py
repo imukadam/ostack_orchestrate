@@ -24,10 +24,18 @@ CFG_FILE = config.CFG_FILE
 
 
 def get_credentials():
-    config_variables = {}
-    config_variables['username'] = config.USERNAME
-    config_variables['password'] = config.PASSWORD
-    config_variables['auth_url'] = config.AUTH_URL
-    config_variables['tenant_name'] = config.TENANT_NAME
+    '''
+    Returns a list of dict that contain loging informatiion for openstack
+    '''
+    regions = str(config.REGIONS).split(',')
+    regions_auth = []
+    for region in regions:
+        config_variables = {}
+        config_variables['username'] = config.USERNAME
+        config_variables['password'] = config.PASSWORD
+        config_variables['auth_url'] = config.AUTH_URL
+        config_variables['tenant_name'] = config.TENANT_NAME
+        config_variables['region_name'] = region
+        regions_auth.append(config_variables)
 
-    return config_variables
+    return regions_auth

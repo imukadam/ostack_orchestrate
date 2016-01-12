@@ -2,6 +2,7 @@
 
 import applogger
 import config
+import credentials
 import os
 import sys
 
@@ -19,12 +20,19 @@ logger.debug(msg='Running %s' % os.path.basename(__file__))
 
 
 def main():
-    logger.info('Attempting to create network "%s"' % config.NET_NAME)
-    net_status = create_network(config.NET_NAME, config.SUBNET)
-    if net_status:
-        logger.info("Continue")
-    else:
-        logger.error("fail")
+    '''
+    main py block
+    '''
+    logger.info("Starting up %s" % os.path.basename(__file__))
+    auths = credentials.get_credentials()
+    for login in auths:
+        logger.info('Attempting to create network "%s" in region %s' % (config.NET_NAME, login['region_name']))
+        net_status = create_network(login, config.NET_NAME, config.SUBNET)
+        # if net_status:
+        #     logger.info("Continue")
+        # else:
+        #     logger.error("fail")
+
     logger.info('End of %s' % os.path.basename(__file__))
 
 
