@@ -6,7 +6,9 @@ import config
 import os
 import sys
 
-#Set encoding type to UTF8
+from novaclient import client
+
+# Set encoding type to UTF8
 reload(sys)
 sys.setdefaultencoding('UTF8')
 
@@ -23,9 +25,9 @@ CFG_FILE = config.CFG_FILE
 # ENV = CONFIG.get('ENV', 'ENV')
 
 
-def get_credentials():
+def get_auths():
     '''
-    Returns a list of dict that contain loging informatiion for openstack
+    Returns a list of dict that contain log in information for openstack
     '''
     regions = str(config.REGIONS).split(',')
     regions_auth = []
@@ -39,3 +41,28 @@ def get_credentials():
         regions_auth.append(config_variables)
 
     return regions_auth
+
+
+def get_nova_sessions(region):
+    '''
+    Returns a nova client connection to selected region
+    '''
+    auth_details = get_auths()
+    nova_session = client.Client('2',
+                                 auth_details[0]['username'],
+                                 auth_details[0]['password'],
+                                 auth_details[0]['tenant_name'],
+                                 auth_details[0]['auth_url'],
+                                 region_name=region,
+                                 connection_pool=True)
+
+    return nova_session
+
+
+# def main():
+#     a = get_nova_sessions()
+#     print(a)
+
+
+# if __name__ == '__main__':
+#     main()

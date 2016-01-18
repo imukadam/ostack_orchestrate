@@ -1,7 +1,6 @@
 #!/usr/local/bin/python2.7
 
 import applogger
-import credentials
 import os
 import sys
 
@@ -16,7 +15,9 @@ if applogger.chkLogger() > 0:
 else:
     logger = applogger.setLogger()
 logger.debug(msg='Running %s' % os.path.basename(__file__))
-auth = credentials.get_credentials()
+# auth = credentials.get_credentials()
+
+# TODO check to see if netron cleint supports sessions
 
 
 def list_networks(login):
@@ -36,6 +37,7 @@ def create_network(login, network_name, cidr):
     Create a openstack network
 
     Args:
+        login (dict): credentials for openstack
         network_name (str): set network name
         cidr (str): network subnet
     '''
@@ -51,8 +53,7 @@ def create_network(login, network_name, cidr):
             net_body = {'network': {'name': network_name, 'admin_state_up': True}}
 
             netw = neutron.create_network(body=net_body)
-            net_dict = netw['network']
-            network_id = net_dict['id']
+            network_id = netw['network']['id']
             logger.info('Network %s created' % network_id)
 
             body_create_subnet = {'subnets': [{'cidr': cidr,
@@ -62,4 +63,26 @@ def create_network(login, network_name, cidr):
             logger.info('Created subnet %s' % subnet)
         finally:
             logger.info('Execution completed')
-            return subnet
+            return netw['network']
+
+
+def delete_network(login, network_name):
+    '''
+    Delete an oprnstack network
+
+    Args:
+        login (dict): credentials for openstack
+        network_name (str): set network name
+    '''
+    existing_net = filter(lambda network: network['name'] == network_name, list_networks(login))
+    if len(existing_net) > 1:
+        raise NameError('found %d networks with the name %s' % (len(existing_net), network_name))
+    elif len(existing_net) == 0:
+        raise NameError('Could not find any network named %s' % network_name)
+    else:
+        logger.debug('Deleting network %s' % network_name)
+        try:
+            neutron = client.Client(**login)
+            neutron.delete_network(existing_net[0]['id'])
+        finally:
+            logger.info('Network %s deleted from %s' % (network_name, login['region_name']))

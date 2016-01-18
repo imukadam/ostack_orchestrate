@@ -14,7 +14,14 @@ USERNAME = CONFIG.get(ENV, 'USERNAME')
 PASSWORD = CONFIG.get(ENV, 'PASSWORD')
 AUTH_URL = CONFIG.get(ENV, 'AUTH_URL')
 TENANT_NAME = CONFIG.get(ENV, 'TENANT_NAME')
+PROJECT_ID = CONFIG.get(ENV, 'PROJECT_ID')
 REGIONS = CONFIG.get(ENV, 'REGIONS')
 
 NET_NAME = CONFIG.get(ENV, "NET_NAME")
 SUBNET = CONFIG.get(ENV, "SUBNET")
+
+elk_flavours = {
+    'elasticsearch': CONFIG.get(ENV, "ES_FLAV"),
+    'logstash': CONFIG.get(ENV, "LS_FLAV"),
+    'kibana': CONFIG.get(ENV, "KIB_FLAV")
+}
