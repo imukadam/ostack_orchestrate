@@ -20,16 +20,37 @@ logger.debug(msg='Running %s' % os.path.basename(__file__))
 # TODO check to see if netron cleint supports sessions
 
 
-def list_networks(login):
+def list_networks(login, network_name=None):
     '''
     Get a list for networks
 
     Returns:
         list.
     '''
+    if network_name is None:
+        neutron = client.Client(**login)
+        netw = neutron.list_networks()
+        return netw['networks']
+    else:
+        existing_net = filter(lambda network: network['name'] == network_name, list_networks(login))
+        return existing_net
+
+
+def list_devices(login, network_name):
+    '''
+    list compute devices on a network
+    '''
     neutron = client.Client(**login)
-    netw = neutron.list_networks()
-    return netw['networks']
+
+    network = list_networks(login, network_name)
+    if len(network) != 1:
+        raise NameError('found %d networks with the name %s' % (len(network), network_name))
+    else:
+        devices = filter(lambda net_devices: net_devices['network_id'] == network[0]['id'] and
+                         net_devices['device_owner'] != 'network:dhcp',
+                         neutron.list_ports()['ports'])
+
+        return devices
 
 
 def create_network(login, network_name, cidr):
@@ -44,7 +65,7 @@ def create_network(login, network_name, cidr):
     neutron = client.Client(**login)
 
     # Check if network name already taken
-    existing_net = filter(lambda network: network['name'] == network_name, list_networks(login))
+    existing_net = list_networks(login, network_name)
     if len(existing_net) > 0:
         raise ValueError('network name "%s" already taken. Please set a different network name' % network_name)
     else:
@@ -74,7 +95,7 @@ def delete_network(login, network_name):
         login (dict): credentials for openstack
         network_name (str): set network name
     '''
-    existing_net = filter(lambda network: network['name'] == network_name, list_networks(login))
+    existing_net = list_networks(login, network_name)
     if len(existing_net) > 1:
         raise NameError('found %d networks with the name %s' % (len(existing_net), network_name))
     elif len(existing_net) == 0:

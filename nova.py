@@ -5,8 +5,6 @@ import config
 import os
 import sys
 
-# from novaclient import client
-
 # Set encoding type to UTF8
 reload(sys)
 sys.setdefaultencoding('UTF8')
@@ -18,8 +16,16 @@ else:
 logger.debug(msg='Running %s' % os.path.basename(__file__))
 
 
-def get_servers(session):
-    return session.servers.list()
+def get_servers(session, srv_name=None, net_name=None):
+    if srv_name is None and net_name is None:
+        return session.servers.list()
+    else:
+        if net_name is not None and srv_name is None:
+            net_filter = filter(lambda servers: servers.networks.keys()[0] == net_name, get_servers(session))
+            return net_filter
+
+        srv_filter = filter(lambda servers: servers.name == srv_name, get_servers(session, net_name=net_name))
+        return srv_filter
 
 
 def set_flav(session, name):
@@ -40,7 +46,7 @@ def set_img(session, name):
     Returns image object
     '''
     logger.debug('looking for flavour named %s' % name)
-    for img in session.flavors.list():
+    for img in session.images.list():
         if img.name == name:
             return img
 
@@ -52,13 +58,13 @@ def create_server(session, srv_name, net_uuid, flavour=None):
     if not flavour:
         flavour = "m1.small"
     server = session.servers.create(name=srv_name,
-                           image=set_img(session, config.IMAGE),
-                           flavor=set_flav(session, flavour),
-                           availability_zone="AZ3",
-                           nics=[{'net-id': net_uuid}])
+                                    image=set_img(session, config.IMAGE),
+                                    flavor=set_flav(session, flavour),
+                                    nics=[{'net-id': net_uuid}])
 
     return server
 
 
-def delete_server(session, srv_name):
-    pass
+def delete_server(server):
+    logger.warn("Deleting server %s" % server.name)
+    server.delete()

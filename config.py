@@ -20,6 +20,7 @@ REGIONS = CONFIG.get(ENV, 'REGIONS')
 NET_NAME = CONFIG.get(ENV, "NET_NAME")
 SUBNET = CONFIG.get(ENV, "SUBNET")
 
+IMAGE = CONFIG.get(ENV, "IMAGE")
 elk_flavours = {
     'elasticsearch': CONFIG.get(ENV, "ES_FLAV"),
     'logstash': CONFIG.get(ENV, "LS_FLAV"),
