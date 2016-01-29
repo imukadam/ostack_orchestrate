@@ -6,6 +6,7 @@ import os
 import sys
 import time
 
+from config import GW_NET
 from config import NET_NAME
 from config import SUBNET
 from config import elk_flavours
@@ -13,6 +14,7 @@ from config import elk_flavours
 from neutron import create_network
 from neutron import delete_network
 from neutron import list_networks
+from neutron import set_router
 from nova import create_server
 from nova import delete_server
 from nova import get_servers
@@ -38,6 +40,9 @@ def main():
     for login in auths:
         logger.info('Attempting to create network "%s" in region %s' % (NET_NAME, login['region_name']))
         network = create_network(login, NET_NAME, SUBNET)
+        rtr_name = "%s_rtr_%s" % (NET_NAME, login['region_name'])
+        router = set_router(login, rtr_name, NET_NAME, GW_NET)
+        logger.info('created rtr %s' % router)
         for componet, componet_flavour in elk_flavours.iteritems():
             logger.info('Attempting to create instance of "%s" in network %s' % (componet, network['id']))
             server_name = ('%s_%s' % (componet, login['region_name']))
@@ -65,9 +70,5 @@ def clean_up():
 
 
 if __name__ == '__main__':
-    # main()
-    clean_up()
-
-
-    # nova_client = credentials.get_nova_sessions()
-    # print(nova_client)
+    main()
+    # clean_up()

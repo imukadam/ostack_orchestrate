@@ -15,9 +15,6 @@ if applogger.chkLogger() > 0:
 else:
     logger = applogger.setLogger()
 logger.debug(msg='Running %s' % os.path.basename(__file__))
-# auth = credentials.get_credentials()
-
-# TODO check to see if netron cleint supports sessions
 
 
 def list_networks(login, network_name=None):
@@ -76,9 +73,11 @@ def create_network(login, network_name, cidr):
             netw = neutron.create_network(body=net_body)
             network_id = netw['network']['id']
             logger.info('Network %s created' % network_id)
-
+            subnet_name = '%s_subnet' % network_name
             body_create_subnet = {'subnets': [{'cidr': cidr,
-                                               'ip_version': 4, 'network_id': network_id}]}
+                                               'name': subnet_name,
+                                               'ip_version': 4,
+                                               'network_id': network_id}]}
 
             subnet = neutron.create_subnet(body=body_create_subnet)
             logger.info('Created subnet %s' % subnet)
@@ -107,3 +106,39 @@ def delete_network(login, network_name):
             neutron.delete_network(existing_net[0]['id'])
         finally:
             logger.info('Network %s deleted from %s' % (network_name, login['region_name']))
+
+
+def set_router(login, rtr_name, network, gw=None):
+    '''
+    creates a router connected to the relevant subnets
+    '''
+    neutron = client.Client(**login)
+
+    # TODO: update method so that it can be used to add interface to existing routers
+    body_value = {'router': {
+        'name': rtr_name,
+        'admin_state_up': True}
+    }
+    new_router = neutron.create_router(body=body_value)
+    logger.info('Created router %s' % new_router)
+
+    existing_net = list_networks(login, network)
+    if len(existing_net) > 1:
+        raise NameError('found %d networks with the name %s' % (len(existing_net), network))
+    elif len(existing_net) == 0:
+        raise NameError('Could not find any network named %s' % network)
+    else:
+        neutron.add_interface_router(new_router['router']['id'], {'subnet_id': existing_net[0]['subnets'][0]})
+        logger.info('Created interface on router %s' % new_router)
+
+    gw_net = list_networks(login, gw)
+    if len(gw_net) > 1:
+        raise NameError('found %d networks with the name %s' % (len(gw_net), gw))
+    elif len(gw_net) == 0:
+        raise NameError('Could not find any network named %s' % gw)
+    else:
+        gw_id = { 'network_id': gw_net[0]['id'] }
+        neutron.add_gateway_router(new_router['router']['id'], gw_id)
+        logger.info('Created gateway on router %s' % new_router)
+
+    return new_router

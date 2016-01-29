@@ -19,6 +19,7 @@ REGIONS = CONFIG.get(ENV, 'REGIONS')
 
 NET_NAME = CONFIG.get(ENV, "NET_NAME")
 SUBNET = CONFIG.get(ENV, "SUBNET")
+GW_NET = CONFIG.get(ENV, "GW_NET")
 
 IMAGE = CONFIG.get(ENV, "IMAGE")
 elk_flavours = {
