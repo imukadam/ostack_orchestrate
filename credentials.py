@@ -54,7 +54,8 @@ def get_nova_sessions(region):
                                  auth_details[0]['tenant_name'],
                                  auth_details[0]['auth_url'],
                                  region_name=region,
-                                 connection_pool=True)
+                                 connection_pool=True
+                                 )
 
     return nova_session
 

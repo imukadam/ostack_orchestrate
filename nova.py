@@ -5,6 +5,8 @@ import config
 import os
 import sys
 
+from time import sleep
+
 # Set encoding type to UTF8
 reload(sys)
 sys.setdefaultencoding('UTF8')
@@ -68,3 +70,4 @@ def create_server(session, srv_name, net_uuid, flavour=None):
 def delete_server(server):
     logger.warn("Deleting server %s" % server.name)
     server.delete()
+    sleep(5)  # Pause as the remove takes a bit of time to register

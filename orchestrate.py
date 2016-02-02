@@ -4,17 +4,14 @@ import applogger
 import credentials
 import os
 import sys
-import time
 
 from config import GW_NET
 from config import NET_NAME
 from config import SUBNET
 from config import elk_flavours
 
-from neutron import create_network
-from neutron import delete_network
-from neutron import list_networks
-from neutron import set_router
+import neutron
+
 from nova import create_server
 from nova import delete_server
 from nova import get_servers
@@ -39,9 +36,9 @@ def main():
 
     for login in auths:
         logger.info('Attempting to create network "%s" in region %s' % (NET_NAME, login['region_name']))
-        network = create_network(login, NET_NAME, SUBNET)
+        network = neutron.create_network(login, NET_NAME, SUBNET)
         rtr_name = "%s_rtr_%s" % (NET_NAME, login['region_name'])
-        router = set_router(login, rtr_name, NET_NAME, GW_NET)
+        router = neutron.set_router(login, rtr_name, NET_NAME, GW_NET)
         logger.info('created rtr %s' % router)
         for componet, componet_flavour in elk_flavours.iteritems():
             logger.info('Attempting to create instance of "%s" in network %s' % (componet, network['id']))
@@ -57,18 +54,19 @@ def clean_up():
     logger.info("Cleaning up...")
     auths = credentials.get_auths()
     for login in auths:
-        #delete network
+        # delete network
         for server in get_servers(credentials.get_nova_sessions(login['region_name']), net_name=NET_NAME):
             delete_server(server)
 
         server = None
-        logger.info('Waiting on server deletion cleanup')
-        time.sleep(10)
 
-        if len(list_networks(login, NET_NAME)) > 0:
-            delete_network(login, NET_NAME)
+        if len(neutron.list_networks(login, NET_NAME)) > 0:
+            neutron.delete_network(login, NET_NAME)
 
 
 if __name__ == '__main__':
-    main()
-    # clean_up()
+    # Create infrastructure
+    # main()
+
+    # Remove infrastructure
+    clean_up()

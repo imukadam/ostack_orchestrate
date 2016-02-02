@@ -4,6 +4,8 @@ import applogger
 import os
 import sys
 
+from time import sleep
+
 from neutronclient.v2_0 import client
 
 # Set encoding type to UTF8
@@ -35,7 +37,7 @@ def list_networks(login, network_name=None):
 
 def list_devices(login, network_name):
     '''
-    list compute devices on a network
+    list devices on a network
     '''
     neutron = client.Client(**login)
 
@@ -43,8 +45,7 @@ def list_devices(login, network_name):
     if len(network) != 1:
         raise NameError('found %d networks with the name %s' % (len(network), network_name))
     else:
-        devices = filter(lambda net_devices: net_devices['network_id'] == network[0]['id'] and
-                         net_devices['device_owner'] != 'network:dhcp',
+        devices = filter(lambda net_devices: net_devices['network_id'] == network[0]['id'],
                          neutron.list_ports()['ports'])
 
         return devices
@@ -88,7 +89,7 @@ def create_network(login, network_name, cidr):
 
 def delete_network(login, network_name):
     '''
-    Delete an oprnstack network
+    Delete an openstack network
 
     Args:
         login (dict): credentials for openstack
@@ -100,9 +101,22 @@ def delete_network(login, network_name):
     elif len(existing_net) == 0:
         raise NameError('Could not find any network named %s' % network_name)
     else:
+        neutron = client.Client(**login)
+        devices = list_devices(login, network_name)
+        router_interfaces = filter(lambda interface: interface['device_owner'] == 'network:router_interface', devices)
+        if len(router_interfaces) > 0:
+            for interface in router_interfaces:
+                logger.info('Removing interface %s from router %s' % (interface['id'], interface['device_id']))
+                interface_port = {'port_id': interface['id']}
+                neutron.remove_interface_router(interface['device_id'], interface_port)
+                sleep(5)  # Pause as the remove takes a bit of time to register
+
+                if len(filter(lambda rtr_ports: rtr_ports['device_id'] == interface['device_id'], neutron.list_ports()['ports'])) == 0:
+                    logger.info('Router %s not in use. Deleting it' % interface['device_id'])
+                    delete_router(login, interface['device_id'])
+
         logger.debug('Deleting network %s' % network_name)
         try:
-            neutron = client.Client(**login)
             neutron.delete_network(existing_net[0]['id'])
         finally:
             logger.info('Network %s deleted from %s' % (network_name, login['region_name']))
@@ -137,8 +151,15 @@ def set_router(login, rtr_name, network, gw=None):
     elif len(gw_net) == 0:
         raise NameError('Could not find any network named %s' % gw)
     else:
-        gw_id = { 'network_id': gw_net[0]['id'] }
+        gw_id = {'network_id': gw_net[0]['id']}
         neutron.add_gateway_router(new_router['router']['id'], gw_id)
         logger.info('Created gateway on router %s' % new_router)
 
     return new_router
+
+
+def delete_router(login, router_id):
+    logger.info('Deleting router %s' % router_id)
+    neutron = client.Client(**login)
+    neutron.delete_router(router_id)
+    sleep(5)  # Pause as the remove takes a bit of time to register
