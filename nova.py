@@ -1,10 +1,12 @@
 #!/usr/local/bin/python2.7
 
 import applogger
-import config
 import os
 import sys
 
+import config
+
+from os.path import basename
 from time import sleep
 
 # Set encoding type to UTF8
@@ -47,7 +49,7 @@ def set_img(session, name):
     '''
     Returns image object
     '''
-    logger.debug('looking for flavour named %s' % name)
+    logger.debug('looking for images named %s' % name)
     for img in session.images.list():
         if img.name == name:
             return img
@@ -60,7 +62,7 @@ def create_server(session, srv_name, net_uuid, flavour=None):
     if not flavour:
         flavour = "m1.small"
     server = session.servers.create(name=srv_name,
-                                    image=set_img(session, config.IMAGE),
+                                    image=set_img(session, basename(config.IMAGE_URL)),
                                     flavor=set_flav(session, flavour),
                                     nics=[{'net-id': net_uuid}])
 

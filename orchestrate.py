@@ -6,15 +6,15 @@ import os
 import sys
 
 from config import GW_NET
+from config import IMAGE_URL
 from config import NET_NAME
 from config import SUBNET
 from config import elk_flavours
 
+import glance
 import neutron
+import nova
 
-from nova import create_server
-from nova import delete_server
-from nova import get_servers
 
 # Set encoding type to UTF8
 reload(sys)
@@ -44,7 +44,7 @@ def main():
             logger.info('Attempting to create instance of "%s" in network %s' % (componet, network['id']))
             server_name = ('%s_%s' % (componet, login['region_name']))
             nova_client = credentials.get_nova_sessions(region=login['region_name'])
-            my_server = create_server(session=nova_client, srv_name=server_name, net_uuid=network['id'], flavour=componet_flavour)
+            my_server = nova.create_server(session=nova_client, srv_name=server_name, net_uuid=network['id'], flavour=componet_flavour)
             logger.info('Server %s (%s) created' % (my_server.name, my_server.id))
 
     logger.info('End of %s' % os.path.basename(__file__))
@@ -55,8 +55,8 @@ def clean_up():
     auths = credentials.get_auths()
     for login in auths:
         # delete network
-        for server in get_servers(credentials.get_nova_sessions(login['region_name']), net_name=NET_NAME):
-            delete_server(server)
+        for server in nova.get_servers(credentials.get_nova_sessions(login['region_name']), net_name=NET_NAME):
+            nova.delete_server(server)
 
         server = None
 
@@ -66,7 +66,16 @@ def clean_up():
 
 if __name__ == '__main__':
     # Create infrastructure
-    # main()
+    main()
 
     # Remove infrastructure
     clean_up()
+
+    # g_session = credentials.get_glance_session()
+
+    # glance.create_image(session=g_session, img_url=IMAGE_URL)
+
+    # my_imgs = glance.get_images(session=g_session, img_name='CentOS 7')
+    # for img in my_imgs:
+    #     print(img)
+    #     print

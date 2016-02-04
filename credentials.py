@@ -75,9 +75,9 @@ def get_nova_sessions(region):
     return nova_session
 
 
-def get_glance_session(region):
+def get_glance_session():
     '''
-    Returns a glance client connection to selected region
+    Returns a glance client connection
     '''
     glance_session = glance_client('2', session=get_keystone_sess())
 
