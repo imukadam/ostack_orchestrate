@@ -22,6 +22,7 @@ SUBNET = CONFIG.get(ENV, "SUBNET")
 GW_NET = CONFIG.get(ENV, "GW_NET")
 
 IMAGE_URL = CONFIG.get(ENV, "IMAGE_URL")
+KEY_NAME =  CONFIG.get(ENV, "KEY_NAME")
 elk_flavours = {
     'elasticsearch': CONFIG.get(ENV, "ES_FLAV"),
     'logstash': CONFIG.get(ENV, "LS_FLAV"),

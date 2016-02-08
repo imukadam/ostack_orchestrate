@@ -54,17 +54,43 @@ def set_img(session, name):
         if img.name == name:
             return img
 
-    logger.fatal('Could not find flavour named %s' % name)
-    raise ValueError('Could not find flavour named %s' % name)
+    logger.warn('Could not find image named %s' % name)
+    return None
 
 
-def create_server(session, srv_name, net_uuid, flavour=None):
+def list_keys(session, key_name):
+    '''
+    Returns the key object for a given key name else None.
+    '''
+    for key in session.keypairs.list():
+        if key.name == key_name:
+            return key
+
+    return None
+
+def create_server(session, srv_name, net_uuid, key=None, flavour=None):
     if not flavour:
         flavour = "m1.small"
-    server = session.servers.create(name=srv_name,
-                                    image=set_img(session, basename(config.IMAGE_URL)),
-                                    flavor=set_flav(session, flavour),
-                                    nics=[{'net-id': net_uuid}])
+    if key:
+        # Check if key exists
+        if not list_keys(session, key):
+            msg = 'Could not find key named %s' % key
+            logger.fatal(msg)
+            raise ValueError(msg)
+        else:
+            logger.info('Found key %s' % key)
+
+    image = set_img(session, basename(config.IMAGE_URL))
+    if image:
+        server = session.servers.create(name=srv_name,
+                                        image=image,
+                                        flavor=set_flav(session, flavour),
+                                        key_name=key,
+                                        nics=[{'net-id': net_uuid}])
+    else:
+        msg = 'Could not find image named %s' % basename(config.IMAGE_URL)
+        logger.fatal(msg)
+        raise ValueError(msg)
 
     return server
 
