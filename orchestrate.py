@@ -40,7 +40,7 @@ def main():
         rtr_name = "%s_rtr_%s" % (NET_NAME, login['region_name'])
         router = neutron.set_router(login, rtr_name, NET_NAME, GW_NET)
         logger.info('created rtr %s' % router)
-        glance_client =  credentials.get_glance_session()
+        glance_client = credentials.get_glance_session()
         logger.info('Checking if image %s exists' % os.path.basename(IMAGE_URL))
         req_img = glance.get_images(session=glance_client, img_name=os.path.basename(IMAGE_URL))
         if not req_img:

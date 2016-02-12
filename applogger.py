@@ -11,6 +11,7 @@ CFG_FILE = config.CFG_FILE
 
 ENV = config.ENV
 LOG_FILE = config.LOG_FILE
+LOG_LEVEL = config.LOG_LEVEL
 
 
 def setLogger():
@@ -19,8 +20,12 @@ def setLogger():
     '''
     console_set = False
     if len(logging.getLogger().handlers) == 0:
-        logging.basicConfig(filename=LOG_FILE, format='[%(asctime)s] [%(pathname)s:%(lineno)d] %(levelname)s - %(message)s',
-                            datefmt='%Y-%m-%d %X %Z', level=logging.INFO)
+        if LOG_LEVEL == 'DEBUG':
+            logging.basicConfig(filename=LOG_FILE, format='[%(asctime)s] [%(pathname)s:%(lineno)d] %(levelname)s - %(message)s',
+                                datefmt='%Y-%m-%d %X %Z', level=logging.DEBUG)
+        else:
+            logging.basicConfig(filename=LOG_FILE, format='[%(asctime)s] [%(pathname)s:%(lineno)d] %(levelname)s - %(message)s',
+                                datefmt='%Y-%m-%d %X %Z', level=logging.INFO)
         if ENV == 'DEV':
             for h in logging.getLogger().handlers:
                 if type(h) is logging.StreamHandler:

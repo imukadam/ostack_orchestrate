@@ -68,6 +68,7 @@ def list_keys(session, key_name):
 
     return None
 
+
 def create_server(session, srv_name, net_uuid, key=None, flavour=None):
     if not flavour:
         flavour = "m1.small"
