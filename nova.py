@@ -116,6 +116,7 @@ def delete_server(server):
     server.delete()
     sleep(5)  # Pause as the remove takes a bit of time to register
 
+
 def create_floating_ip(session, network):
     '''
     Creates a floating ip from the given network
@@ -129,6 +130,7 @@ def create_floating_ip(session, network):
         raise ValueError(msg)
 
     return floating_ip
+
 
 def delete_floating_ip(floating_ip):
     '''
@@ -144,7 +146,7 @@ def associate_floating_ip(session, server, floating_ip):
     '''
     session.servers.add_floating_ip(server=server, address=floating_ip)
     floating_ip = session.floating_ips.get(floating_ip)
-    # Check IP has been associated 
+    # Check IP has been associated
     if floating_ip.instance_id == server.id:
         logger.info("Floating ip %s has been added to server %s (%s)" % (floating_ip.ip, server.name, server.id))
     else:
@@ -153,6 +155,7 @@ def associate_floating_ip(session, server, floating_ip):
         raise ValueError(msg)
 
     return floating_ip
+
 
 def disassociate_floating_ip(session, server, floating_ip):
     '''
@@ -167,4 +170,3 @@ def disassociate_floating_ip(session, server, floating_ip):
         session.servers.remove_floating_ip(server=server, address=floating_ip)
 
     return floating_ip
-
