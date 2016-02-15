@@ -115,3 +115,56 @@ def delete_server(server):
     logger.warn("Deleting server %s" % server.name)
     server.delete()
     sleep(5)  # Pause as the remove takes a bit of time to register
+
+def create_floating_ip(session, network):
+    '''
+    Creates a floating ip from the given network
+    '''
+    floating_ip = session.floating_ips.create(network)
+    if floating_ip:
+        logger.info("Allocated floating IP %s for %s network." % (floating_ip.ip, network))
+    else:
+        msg = "Could not allocate floating IP for %s network. Check taht you have enough quota." % network
+        logger.fatal(msg)
+        raise ValueError(msg)
+
+    return floating_ip
+
+def delete_floating_ip(floating_ip):
+    '''
+    Deletes a floating ip
+    '''
+    logger.warn("Deleting floating ip %s" % floating_ip.ip)
+    floating_ip.delete()
+
+
+def associate_floating_ip(session, server, floating_ip):
+    '''
+    Associates a floating ip with a server. Returns the floating ip object with the instance added.
+    '''
+    session.servers.add_floating_ip(server=server, address=floating_ip)
+    floating_ip = session.floating_ips.get(floating_ip)
+    # Check IP has been associated 
+    if floating_ip.instance_id == server.id:
+        logger.info("Floating ip %s has been added to server %s (%s)" % (floating_ip.ip, server.name, server.id))
+    else:
+        msg = "Failed to associate floating ip %s with server %s (%s)" % (floating_ip.ip, server.name, server.id)
+        logger.fatal(msg)
+        raise ValueError(msg)
+
+    return floating_ip
+
+def disassociate_floating_ip(session, server, floating_ip):
+    '''
+    Disassociates a server and floating ip. Returns the floating ip object with the instance removed.
+    '''
+    logger.info("Removing %s from instance %s" % (floating_ip.ip, floating_ip.instance_id))
+    if floating_ip.instance_id != server.id:
+        msg = "Floating ip %s has not been associated to server %s" % (floating_ip.ip, server)
+        logger.fatal(msg)
+        raise ValueError(msg)
+    else:
+        session.servers.remove_floating_ip(server=server, address=floating_ip)
+
+    return floating_ip
+
