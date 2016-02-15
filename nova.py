@@ -153,3 +153,15 @@ def disassociate_floating_ip(session, server, floating_ip):
 
     return floating_ip
 
+def list_floating_ips(session, server_id=None):
+    '''
+    Returns a list of floating ips for a server or a list of all floating ips
+    '''
+    if server_id is None:
+        return session.floating_ips.list()
+    else:
+        srv_filter = []
+        for floating_ip in list_floating_ips(session):
+            if floating_ip.instance_id == server_id:
+                srv_filter.append(floating_ip)
+        return srv_filter
