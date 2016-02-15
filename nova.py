@@ -69,7 +69,15 @@ def list_keys(session, key_name):
     return None
 
 
-def create_server(session, srv_name, net_uuid, key=None, flavour=None):
+def list_availability_zones(session, zone_name):
+    for zone in session.availability_zones.list(detailed=False):
+        if zone.zoneName == zone_name:
+            return zone
+
+    return None
+
+
+def create_server(session, srv_name, net_uuid, az=None, key=None, flavour=None):
     if not flavour:
         flavour = "m1.small"
     if key:
@@ -80,6 +88,13 @@ def create_server(session, srv_name, net_uuid, key=None, flavour=None):
             raise ValueError(msg)
         else:
             logger.info('Found key %s' % key)
+
+    if az:
+        zone = list_availability_zones(session=session, zone_name=az)
+        if not zone:
+            msg = 'Could not find AZ named %s' % az
+            logger.fatal(msg)
+            raise ValueError(msg)
 
     image = set_img(session, basename(config.IMAGE_URL))
     if image:
