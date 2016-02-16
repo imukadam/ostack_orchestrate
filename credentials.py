@@ -82,3 +82,18 @@ def get_glance_session():
     glance_session = glance_client('2', session=get_keystone_sess())
 
     return glance_session
+
+
+def get_cinder_session(region):
+    '''
+    Returns a cinder client connection
+    '''
+    auth_details = get_auths()
+    cinder_session = cinder_client.Client(auth_details[0]['username'],
+                                          auth_details[0]['password'],
+                                          auth_details[0]['tenant_name'], 
+                                          auth_details[0]['auth_url'],
+                                          region_name=region,
+                                          service_type="volume"
+                                          )
+    return cinder_session
