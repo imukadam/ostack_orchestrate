@@ -56,19 +56,3 @@ def delete_volume(volume):
     '''
     logger.warn("Deleting volume %s (%s)" % (volume.name, volume.id))
     volume.delete()
-
-def volume_attach(volume, server_id, mountpoint="/dev/vdb/"):
-    '''
-    Attaches a volume to a server using the given server_id
-    '''
-    logger.info("Attaching volume %s (%s) to server %s" % (volume.name, volume.id, server_id))
-    volume = volume.attach(instance_uuid=server_id, mountpoint=mountpoint)
-    return volume
-
-def volume_detach(volume):
-    '''
-    Removes all attachments to a volume
-    '''
-    logger.info("Detaching volume attachments for volume %s" % (volume.id))
-    volume = volume.detach()
-    return volume

@@ -206,3 +206,23 @@ def wait_for_server(session, srv_name, timeout=300, refresh=1.0):
             return e
 
     raise ValueError('Timeout expired before server was ready. Maybe consider increasing timeout vlaue to higher then %f sec?' % timeout)
+
+
+def volume_attach(session, server_id, volume_id):
+    '''
+    Attaches a volume to a server
+    '''
+    logger.info("Attaching volume %s to server %s" % (volume_id, server_id))
+    volume = session.volumes.create_server_volume(server_id=server_id, volume_id=volume_id)
+    time.sleep(5) # Wait for volume to attach
+    return volume
+
+
+def volume_detach(session, server_id, volume_id):
+    '''
+    Removes attachment to a volume
+    '''
+    logger.info("Detaching server attachment for server %s and volume %s" % (server_id, volume_id))
+    volume = session.volumes.delete_server_volume(server_id=server_id, attachment_id=volume_id)
+    time.sleep(5) # Wait for volume to detach
+    return volume
