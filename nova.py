@@ -184,3 +184,45 @@ def list_floating_ips(session, server_id=None):
             if floating_ip.instance_id == server_id:
                 srv_filter.append(floating_ip)
         return srv_filter
+
+
+def wait_for_server(session, srv_name, timeout=300, refresh=1.0):
+    '''
+    Return True if server is ready to use within a given time else return False
+    '''
+    endtime = time.time() + timeout
+    while time.time() < endtime:
+        time.sleep(refresh)
+        logger.info('Checking if server %s ready' % srv_name)
+        try:
+            srv = get_servers(session=session, srv_name=srv_name)
+            if srv:
+                logger.info('Server %s status is %s' % (srv_name, srv[0].status))
+                if srv[0].status == 'ACTIVE':
+                    logger.info('Yay! server %s ready to use' % srv_name)
+                    return True
+        except Exception as e:
+            logger.error('Got error %s' % str(e))
+            return e
+
+    raise ValueError('Timeout expired before server was ready. Maybe consider increasing timeout vlaue to higher then %f sec?' % timeout)
+
+
+def volume_attach(session, server_id, volume_id):
+    '''
+    Attaches a volume to a server
+    '''
+    logger.info("Attaching volume %s to server %s" % (volume_id, server_id))
+    volume = session.volumes.create_server_volume(server_id=server_id, volume_id=volume_id)
+    time.sleep(5) # Wait for volume to attach
+    return volume
+
+
+def volume_detach(session, server_id, volume_id):
+    '''
+    Removes attachment to a volume
+    '''
+    logger.info("Detaching server attachment for server %s and volume %s" % (server_id, volume_id))
+    volume = session.volumes.delete_server_volume(server_id=server_id, attachment_id=volume_id)
+    time.sleep(5) # Wait for volume to detach
+    return volume
