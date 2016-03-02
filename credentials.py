@@ -107,4 +107,15 @@ def get_designate_session():
   return my_client
 
 
-
+def get_neutron_session(region):
+    '''
+    Returns a neutron connection
+    '''
+    logger.debug("Attempting to make neutron session")
+    auth_details = get_auths()
+    neutron_session = neutron_client.Client(username=auth_details[0]['username'],
+                                            password=auth_details[0]['password'],
+                                            tenant_name=auth_details[0]['tenant_name'],
+                                            auth_url=auth_details[0]['auth_url'],
+                                            region_name=region)
+    return neutron_session
