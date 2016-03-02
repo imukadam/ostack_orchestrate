@@ -98,3 +98,13 @@ def get_cinder_session(region):
                                           service_type="volume"
                                           )
     return cinder_session
+
+
+def get_designate_session():
+  logger.debug("Attempting to make designate session")
+  ks_session = get_keystone_sess()
+  my_client = designate_client.Client(session=ks_session)
+  return my_client
+
+
+
